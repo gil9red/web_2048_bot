@@ -5,13 +5,13 @@ __author__ = 'ipetrash'
 
 
 if __name__ == '__main__':
+    import os
+
+    if 'QT_API' not in os.environ:
+        os.environ['QT_API'] = 'pyqt4'
+
     import sys
-
-    try:
-        from PyQt4.QtGui import QApplication
-    except ImportError:
-        from PySide.QtGui import QApplication
-
+    from qtpy.QtWidgets import QApplication
     from mainwindow import MainWindow
 
     app = QApplication(sys.argv)

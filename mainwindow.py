@@ -4,32 +4,19 @@
 __author__ = 'ipetrash'
 
 
-try:
-    from PyQt4.QtGui import (
-        QApplication, QMainWindow, QDockWidget, QKeyEvent, QToolBar, QPlainTextEdit, QTextEdit,
-        QErrorMessage, QTextCharFormat, QTextCursor, QFont, QMessageBox, QFontMetrics, QDesktopServices
-    )
+import os
 
-except ImportError:
-    from PySide.QtGui import (
-        QApplication, QMainWindow, QDockWidget, QKeyEvent, QToolBar, QPlainTextEdit, QTextEdit,
-        QErrorMessage, QTextCharFormat, QTextCursor, QFont, QMessageBox, QFontMetrics, QDesktopServices
-    )
+if 'QT_API' not in os.environ:
+    os.environ['QT_API'] = 'pyqt4'
 
-try:
-    from PyQt4.QtCore import Qt, QEventLoop, QTimer, QSettings, QObject, QUrl
-except ImportError:
-    from PySide.QtCore import Qt, QEventLoop, QTimer, QSettings, QObject, QUrl
 
-try:
-    from PyQt4.QtNetwork import QNetworkProxyFactory
-except ImportError:
-    from PySide.QtNetwork import QNetworkProxyFactory
+from qtpy.QtWidgets import QApplication, QMainWindow, QMessageBox
+from qtpy.QtGui import QKeyEvent, QDesktopServices
+from qtpy.QtCore import Qt, QEventLoop, QTimer, QSettings, QObject, QUrl
+from qtpy.QtNetwork import QNetworkProxyFactory
 
-try:
-    from PyQt4.QtWebKit import QWebView, QWebSettings
-except ImportError:
-    from PySide.QtWebKit import QWebView, QWebSettings
+from qtpy.QtWebEngineWidgets import QWebEngineView as QWebView
+from qtpy.QtWebEngineWidgets import QWebEngineSettings as QWebSettings
 
 
 from common import *
@@ -48,7 +35,6 @@ def log_uncaught_exceptions(ex_cls, ex, tb):
     QMessageBox.critical(None, 'Error', text)
 
     QApplication.instance().quit()
-
 
 sys.excepthook = log_uncaught_exceptions
 
@@ -73,8 +59,16 @@ URL = QUrl('http://gabrielecirulli.github.io/2048/')
 # Чтобы не было проблем запуска компов с прокси:
 QNetworkProxyFactory.setUseSystemConfiguration(True)
 
-# Чтобы можно было для страницы открывать инспектор
-QWebSettings.globalSettings().setAttribute(QWebSettings.DeveloperExtrasEnabled, True)
+try:
+    # Если в setAttribute положить, то при отсутствии атрибута DeveloperExtrasEnabled (в Qt 5)
+    # приложение падает в dll и это не получается остановить, однако, если попытаться заранее
+    # обратиться к атрибуту, то при его отсутствии будет выброшено AttributeError
+    QWebSettings.DeveloperExtrasEnabled
+
+    # Чтобы можно было для страницы открывать инспектор
+    QWebSettings.globalSettings().setAttribute(QWebSettings.DeveloperExtrasEnabled, True)
+except AttributeError:
+    pass
 
 # Регулярка для вытаскивания индексов ячеек
 import re
