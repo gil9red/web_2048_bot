@@ -77,7 +77,7 @@ TILE_INDEX_RE = re.compile(r"tile-position-(\d)-(\d)")
 from simple_2048_bot.board import Board
 from simple_2048_bot.board_score_heuristics import perfect_heuristic
 from simple_2048_bot.board_score_strategy import ExpectimaxStrategy
-from simple_2048_bot.config import WIN_VALUE, BOARD_SIZE
+from simple_2048_bot.config import WIN_VALUE, NEVER_STOP, BOARD_SIZE
 import simple_2048_bot.moves as move
 
 
@@ -118,8 +118,17 @@ class MainWindow(QMainWindow, QObject):
         self.action_go_to_2048 = self.tool_bar.addAction('Go to 2048')
         self.action_go_to_2048.triggered.connect(lambda x=None: QDesktopServices.openUrl(URL))
 
+        self._win = False
+
     def start_bot(self):
         logger.debug('start start_bot')
+
+        # TODO: автоматизировать. Добавить флаг, который определяет, должен ли бот автоматически
+        # после достижения 2048 дальше играть
+        # Если запустить после победы (достигли 2048), то снимаем ограничение
+        if self._win:
+            global WIN_VALUE
+            WIN_VALUE = NEVER_STOP
 
         self.action_run_bot.setChecked(True)
         self.timer.start()
@@ -188,10 +197,11 @@ class MainWindow(QMainWindow, QObject):
             logger.debug('Fail')
             self.stop_bot()
 
-        success = board.get_max_tile() >= WIN_VALUE
+        success = board.get_max_tile() == WIN_VALUE
         if success:
             logger.debug('Win')
             self.stop_bot()
+            self._win = True
 
     def read_settings(self):
         logger.debug('start read_settings')
