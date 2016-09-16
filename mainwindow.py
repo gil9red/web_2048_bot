@@ -11,8 +11,8 @@ if 'QT_API' not in os.environ:
 
 
 from qtpy.QtWidgets import QApplication, QMainWindow, QMessageBox
-from qtpy.QtGui import QKeyEvent, QDesktopServices
-from qtpy.QtCore import Qt, QEventLoop, QTimer, QSettings, QObject, QUrl
+from qtpy.QtGui import QKeyEvent, QMouseEvent, QDesktopServices
+from qtpy.QtCore import Qt, QEventLoop, QTimer, QSettings, QObject, QUrl, QEvent
 from qtpy.QtNetwork import QNetworkProxyFactory
 
 from qtpy.QtWebEngineWidgets import QWebEngineView as QWebView
@@ -52,6 +52,18 @@ def key_press_release(widget, key, modifier=Qt.NoModifier):
 
     key_release = QKeyEvent(QKeyEvent.KeyRelease, key, modifier, None, False, 0)
     QApplication.sendEvent(widget, key_release)
+
+
+def mouse_click(widget, pos, mouse=Qt.LeftButton, modifier=Qt.NoModifier):
+    """
+    Функция для отправления события нажатия кнопки мыши.
+    """
+
+    mouse_press = QMouseEvent(QEvent.MouseButtonPress, pos, mouse, mouse, modifier)
+    QApplication.sendEvent(widget, mouse_press)
+
+    mouse_release = QMouseEvent(QEvent.MouseButtonRelease, pos, mouse, mouse, modifier)
+    QApplication.sendEvent(widget, mouse_release)
 
 
 URL = QUrl('http://gabrielecirulli.github.io/2048/')
@@ -119,16 +131,17 @@ class MainWindow(QMainWindow, QObject):
         self.action_go_to_2048.triggered.connect(lambda x=None: QDesktopServices.openUrl(URL))
 
         self._win = False
+        
+
+        # from qtpy.QtWidgets import QPlainTextEdit, QPushButton
+        # self.pl = QPlainTextEdit("""\n\n\ndoc = self.view.page().mainFrame().documentElement()\nbutton = doc.findFirst('.restart-button')\nprint(button.toPlainText())\nprint(button.geometry())""")
+        # self.pl.show()
+        # self.pb = QPushButton(self.pl)
+        # self.pb.show()
+        # self.pb.clicked.connect(lambda x: exec(self.pl.toPlainText().strip()))
 
     def start_bot(self):
         logger.debug('start start_bot')
-
-        # TODO: автоматизировать. Добавить флаг, который определяет, должен ли бот автоматически
-        # после достижения 2048 дальше играть
-        # Если запустить после победы (достигли 2048), то снимаем ограничение
-        if self._win:
-            global WIN_VALUE
-            WIN_VALUE = NEVER_STOP
 
         self.action_run_bot.setChecked(True)
         self.timer.start()
@@ -195,13 +208,35 @@ class MainWindow(QMainWindow, QObject):
 
         if not board.has_legal_moves():
             logger.debug('Fail')
+            logger.debug('board:\n%s', repr(board))
+            # TODO: ...
             self.stop_bot()
 
+        global WIN_VALUE
         success = board.get_max_tile() == WIN_VALUE
         if success:
             logger.debug('Win')
-            self.stop_bot()
             self._win = True
+
+        # TODO: автоматизировать. Добавить флаг, который определяет, должен ли бот автоматически
+        # после достижения 2048 дальше играть
+        # Если запустить после победы (достигли 2048), то снимаем ограничение
+        if self._win:
+            WIN_VALUE = NEVER_STOP
+
+            # Делаем клик на продолжить игру
+            doc = self.view.page().mainFrame().documentElement()
+            button = doc.findFirst('.keep-playing-button')
+            if button.isNull() or button.geometry().isNull():
+                # Может, кнопка еще не появилась, нужно подождать
+                return
+
+            pos = button.geometry().center()
+            mouse_click(self.view, pos)
+            logger.debug('Button keep-playing-button click')
+
+            # Игра продолжается
+            self._win = False
 
     def read_settings(self):
         logger.debug('start read_settings')
