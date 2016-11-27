@@ -169,7 +169,7 @@ class MainWindow(QMainWindow, QObject):
         return board
 
     def bot_click(self):
-        """Функция для случайного клика на WASD."""
+        """Функция для клика на WASD."""
 
         board = Board(self.matrix_board())
 
