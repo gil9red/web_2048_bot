@@ -74,11 +74,11 @@ except AttributeError:
 import re
 TILE_INDEX_RE = re.compile(r"tile-position-(\d)-(\d)")
 
-from simple_2048_bot.board import Board
-from simple_2048_bot.board_score_heuristics import perfect_heuristic
-from simple_2048_bot.board_score_strategy import ExpectimaxStrategy
-from simple_2048_bot.config import WIN_VALUE, BOARD_SIZE
-import simple_2048_bot.moves as move
+from eshirazi_2048_bot.board import Board
+from eshirazi_2048_bot.board_score_heuristics import perfect_heuristic
+from eshirazi_2048_bot.board_score_strategy import ExpectimaxStrategy
+from eshirazi_2048_bot.config import WIN_VALUE, BOARD_SIZE
+import eshirazi_2048_bot.moves as move
 
 
 STRATEGY = ExpectimaxStrategy(perfect_heuristic)
