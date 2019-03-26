@@ -110,7 +110,7 @@ class MainWindow(QMainWindow, QObject):
 
         self.action_run_bot = self.tool_bar.addAction('Run Bot')
         self.action_run_bot.setCheckable(True)
-        self.action_run_bot.triggered.connect(lambda checked: self.timer.start() if checked else self.timer.stop())
+        self.action_run_bot.triggered.connect(lambda checked=None: self.timer.start() if checked else self.timer.stop())
 
         self.action_next_step_bot = self.tool_bar.addAction('Next Step Bot')
         self.action_next_step_bot.triggered.connect(lambda x=None: self.stop_bot() or self.bot_click())
